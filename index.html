@@ -12,10 +12,36 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
   <script>
-    var socket = io.connect('http://192.168.15.250:3000');
+    var socket = io.connect('http://localhost:3000');
+    var minhaSalaAtual;
     socket.on('connect', function(){
-
+      socket.emit('addUsuario', prompt("Qual seu nome de usuario?"));
+      //socket.emit('addUsuario', 'kress');
+      console.log("Conenctado!");
+      socket.on('atualizarSalas', function(salas, salaAtual){
+        minhaSalaAtual = salaAtual;       
+        atualizaSalas(salas, salaAtual);
+      });
+      socket.on('atualizarListaSalas', function(salas){
+        atualizaSalas(salas, minhaSalaAtual);
+      });
     });
+    function atualizaSalas(salas, sala){
+      $('#salas').empty();
+          $.each(salas, function(index, val) {
+            if(val == sala){
+             $('#salas').append('<a href="#" class="list-group-item list-group-item-action text-white bg-dark">'+val+'</a>');
+           }else{
+            $('#salas').append('<a href="#" class="list-group-item list-group-item-action bg-light" onclick="trocarSala(\''+ val +'\')">'+val+'</a>');
+           }
+          });
+    }
+    function trocarSala(room){
+      socket.emit('trocarSala', room);
+    }
+    function novaSala() {
+      socket.emit('novaSala', prompt("Nome da Sala"));
+    }
   </script>
 </head>
 <body>
@@ -25,9 +51,8 @@
       <!-- Sidebar -->
       <div class="bg-light border-right" id="sidebar-wrapper">
         <div class="sidebar-heading">Salas de Jogos </div>
-        <div class="list-group list-group-flush">
-          <a href="#" class="list-group-item list-group-item-action bg-light">Entrada</a>
-          <a href="#" class="list-group-item list-group-item-action bg-light">Sala 1</a>
+        <div id="salas" class="list-group list-group-flush">
+          
         </div>
       </div>
       <!-- /#sidebar-wrapper -->
@@ -49,7 +74,7 @@
                   Menu
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                  <a class="dropdown-item" href="#">Nova sala</a>
+                  <a class="dropdown-item" href="#" onclick="novaSala()">Nova sala</a>
                   <div class="dropdown-divider"></div>
                   <a class="dropdown-item" href="#">Sair</a>
                 </div>
