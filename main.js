@@ -21,34 +21,37 @@ Io.sockets.on('connection', function (socket) {
   	socket.join('Lob');
   	socket.emit('atualizarSalas', salas, 'Lob');
     Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' entrou no jogo');
+    Io.sockets.in(socket.room).emit('numeroJogadores', numUsuariosSala(socket.room));
   });
 
   socket.on('trocarSala', function(novaSala) {
     socket.leave(socket.room);
     Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' saiu na sala');
 	  if(numUsuariosSala(socket.room) < 1 && socket.room != 'Lob'){
-		  salas.splice(salas.indexOf(socket.room),1);
-    }
+		  salas.splice(salas.indexOf(socket.room),1);    }
+    Io.sockets.in(socket.room).emit('numeroJogadores', numUsuariosSala(socket.room));
 	  socket.join(novaSala);
   	socket.room = novaSala;
 	  socket.emit('atualizarSalas', salas, novaSala);
 	  socket.broadcast.emit('atualizarListaSalas', salas);
     Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' entrou na sala');
+    Io.sockets.in(socket.room).emit('numeroJogadores', numUsuariosSala(socket.room));
   });
 
   socket.on('novaSala', function(novaSala){
 	  salas.push(novaSala);
 	  socket.leave(socket.room);
+    Io.sockets.in(socket.room).emit('numeroJogadores', numUsuariosSala(socket.room));
   	socket.join(novaSala);
   	socket.room = novaSala;
 	  socket.emit('atualizarSalas', salas, novaSala);
 	  socket.broadcast.emit('atualizarListaSalas', salas);
+    Io.sockets.in(socket.room).emit('numeroJogadores', numUsuariosSala(socket.room));
   });
 
   socket.on('enviarMensagem',function(data){
     Io.sockets.in(socket.room).emit('updatechat', socket.username, data);
   });
-
 
   socket.on('disconnect', function () {
       socket.emit('disconnected');
