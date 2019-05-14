@@ -19,13 +19,33 @@
       //socket.emit('addUsuario', 'kress');
       console.log("Conenctado!");
       socket.on('atualizarSalas', function(salas, salaAtual){
-        minhaSalaAtual = salaAtual;       
+        minhaSalaAtual = salaAtual;
         atualizaSalas(salas, salaAtual);
       });
       socket.on('atualizarListaSalas', function(salas){
         atualizaSalas(salas, minhaSalaAtual);
       });
+      socket.on('updatechat', function (username, data) {
+    		$('.mensagens').append('<b>'+username + ':</b> ' + data + '<br>');
+    	});
     });
+
+    $(function() {
+      $('form').on('submit',function( event ) {
+        event.preventDefault();
+        let data = $('#inputMensagem').val();
+        $('#inputMensagem').val('');
+        socket.emit('enviarMensagem', data);
+      });
+
+      $('#inputMensagem').keypress(function(e) {
+  			if(e.which == 13) {
+  				$(this).blur();
+  				$('form').focus().click();
+  			}
+  		});
+    });
+
     function atualizaSalas(salas, sala){
       $('#salas').empty();
           $.each(salas, function(index, val) {
@@ -52,7 +72,7 @@
       <div class="bg-light border-right" id="sidebar-wrapper">
         <div class="sidebar-heading">Salas de Jogos </div>
         <div id="salas" class="list-group list-group-flush">
-          
+
         </div>
       </div>
       <!-- /#sidebar-wrapper -->
@@ -99,12 +119,12 @@
             <!-- CHAT -->
               <div class="">
                 <div class="mensagens"></div>
-                <form class="form-inline">
+                <form class="form-inline" id="chat">
                 <div class="form-group mx-sm-3 mb-2">
                   <label for="inputMensagem" class="sr-only">Mensagens</label>
                   <input type="text" class="form-control" id="inputMensagem" placeholder="Mensagem...">
                 </div>
-                <button type="submit" class="btn btn-primary mb-2">Enviar</button>
+                <button id="enviarMensagem" type="submit" class="btn btn-primary mb-2">Enviar</button>
               </form>
             </div>
             <!-- FIM CHAT -->

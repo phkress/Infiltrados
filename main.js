@@ -20,30 +20,41 @@ Io.sockets.on('connection', function (socket) {
   	usernames[username] = username;
   	socket.join('Lob');
   	socket.emit('atualizarSalas', salas, 'Lob');
+    Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' entrou no jogo');
   });
-  
+
   socket.on('trocarSala', function(novaSala) {
-	
-	socket.leave(socket.room);
-	if(numUsuariosSala(socket.room) < 1 && socket.room != 'Lob'){
-		salas.splice(salas.indexOf(socket.room),1);
-	}		  
-	socket.join(novaSala);
+    socket.leave(socket.room);
+    Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' saiu na sala');
+	  if(numUsuariosSala(socket.room) < 1 && socket.room != 'Lob'){
+		  salas.splice(salas.indexOf(socket.room),1);
+    }
+	  socket.join(novaSala);
   	socket.room = novaSala;
-	   socket.emit('atualizarSalas', salas, novaSala);
-	   socket.broadcast.emit('atualizarListaSalas', salas);
-	  
-  })
+	  socket.emit('atualizarSalas', salas, novaSala);
+	  socket.broadcast.emit('atualizarListaSalas', salas);
+    Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' entrou na sala');
+  });
+
   socket.on('novaSala', function(novaSala){
 	  salas.push(novaSala);
 	  socket.leave(socket.room);
-  		socket.join(novaSala);
-  		socket.room = novaSala;
-	   socket.emit('atualizarSalas', salas, novaSala);
-	   socket.broadcast.emit('atualizarListaSalas', salas);
+  	socket.join(novaSala);
+  	socket.room = novaSala;
+	  socket.emit('atualizarSalas', salas, novaSala);
+	  socket.broadcast.emit('atualizarListaSalas', salas);
   });
+
+  socket.on('enviarMensagem',function(data){
+    Io.sockets.in(socket.room).emit('updatechat', socket.username, data);
+  });
+
+
   socket.on('disconnect', function () {
       socket.emit('disconnected');
+      Io.sockets.in(socket.room).emit('updatechat', 'SERVER', 'Usuario: '+socket.username+' saiu do jogo');
+      delete usernames[socket.username];
+      socket.leave(socket.room);
   });
 });
 
@@ -55,7 +66,6 @@ function numUsuariosSala(sala){
 		numClients = Object.keys(clients).length
 	} catch (error) {
 		numClients = 0
-	}	
+	}
 	return numClients
 }
-
